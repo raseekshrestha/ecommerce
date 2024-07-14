@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "mocha"
+    "test": "cross-env NODE_ENV=test mocha --exit"
   },
   "keywords": [
     "ecommerce",
@@ -20,11 +20,13 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.5.1"
+    "mongoose": "^8.5.1",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "chai": "^5.1.1",
