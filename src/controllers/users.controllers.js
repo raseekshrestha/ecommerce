@@ -29,7 +29,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 return ret;
             }
         })
-        const token = await user.generateAccessToken({ _id: user._id })
+        const token = await user.generateAccessToken({ _id: user._id, userType: user.userType })
         res.json(new ApiResponse(200, "login success", { ...reqFields, token }))
     } else {
         throw new ApiError(403, "email or password error")
@@ -37,7 +37,25 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const editDetails = asyncHandler(async (req, res) => {
-    // const {}
+    // only username number and address are allowed to change
+    const { username, number, address } = req.body;
+    if (!(username || number || address)) {
+        throw new ApiError(400, "any of username, number,address if required. All missing!");
+    }
+    const user = await userModel.findOne({ _id: req.user._id }).select("-password")
+    if (username) user.username = username;
+    if (number) user.number = number;
+    if (address) user.address = address;
+    try {
+        const edited = await user.save()
+        res.json(new ApiResponse(200, "Edited Successfully", edited))
+    }
+    catch (err) {
+        throw new ApiError(500, err.message)
+    }
+
+
+
 })
 
-export { createUser, loginUser }
+export { createUser, loginUser, editDetails }

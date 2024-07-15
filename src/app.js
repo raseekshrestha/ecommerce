@@ -5,6 +5,7 @@ import 'dotenv/config'
 import { dbConnect } from "./config/dbConfig.js";
 import userRoutes from "./routes/users.routes.js";
 import { notFound, errorMiddleware } from "./middlewares/errors.middlewares.js";
+import productRoutes from './routes/products.routes.js';
 
 
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.get("/", (req, res) => res.json({ "message": "hello world!" }));
 
 app.use("/api/users", userRoutes)
+app.use("/api/products", productRoutes)
 
 
 // errors

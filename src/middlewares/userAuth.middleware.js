@@ -1,19 +1,24 @@
-import jwt from 'jsonwebtoken';
+import jwt, { decode } from 'jsonwebtoken';
 import { ApiError } from '../utils/ApiError.js';
 
-const validateUser = (req, res, next) => {
+const validateUser = (role = "any") => (req, res, next) => {
+    // role = 1 indicates any userType with valid token is allowed
     const auth = req.headers?.authorization
     if (!auth || !auth.startsWith("Bearer ")) {
         throw new ApiError(401, "Authorization Header Invalid")
     }
 
     const token = auth.split(" ")[1]
-    const decodedToken = jwt.decode(token, process.env.JWT_SECRET)
+    const decodedToken = jwt.decode(token, process.env.JWT_ACCESS_SECRET)
     if (decodedToken) {
-        req.user = {
-            _id: decodedToken._id
+        if (role == "any" || (role == decodedToken.userType)) {
+            // decodedToken contains {_id,userType}
+            req.user = decodedToken
+            next()
         }
-        next()
+        else {
+            throw new ApiError(401, `Forbidded for userType: ${decodedToken.userType}`)
+        }
 
     } else {
         throw new ApiError(401, "Invalid or expired token")
