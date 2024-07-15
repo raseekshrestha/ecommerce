@@ -45,7 +45,7 @@ userSchema.methods.matchPassword = async function (password) {
 }
 
 userSchema.methods.generateAccessToken = function (payload) {
-    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET)
+    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET, { expiresIn: "1h" })
 }
 
 
