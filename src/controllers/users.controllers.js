@@ -3,10 +3,12 @@ import { userModel } from "../models/users.model.js";
 import validator from "validator";
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { logger } from "../app.js";
 
 const createUser = asyncHandler(async (req, res) => {
     const { username, email, password, userType } = req.body;
     if (await userModel.countDocuments({ $or: [{ username }, { email }] }) >= 1) {
+        logger.error("Duplicate user registration")
         throw new ApiError(400, "User already registered")
     }
     const user = await userModel.create({ username, email, password, userType })

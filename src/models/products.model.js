@@ -30,11 +30,16 @@ const productSchema = Schema({
         default: 0
     },
     averageRating: {
-        type: Number
+        type: Number,
+        default: 0
     },
     totalReview: {
         type: Number,
         default: 0
+    },
+    seller: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
     }
 
 }, { timestamps: true })

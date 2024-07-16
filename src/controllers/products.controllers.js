@@ -9,7 +9,7 @@ const addProduct = asyncHandler(async (req, res) => {
     const product = await productModel.create({
         name, description,
         image_urls, thumbnail_url,
-        price, stock, discount
+        price, stock, discount, seller: req.user._id
     })
 
     if (product) {
@@ -22,7 +22,10 @@ const addProduct = asyncHandler(async (req, res) => {
 
 const getProductById = asyncHandler(async (req, res) => {
     const productId = req.params.productId;
-    const product = await productModel.findOne({ _id: productId })
+    const product = await productModel.findOne({ _id: productId }).populate({
+        path: "seller",
+        select: "username"
+    })
     if (product) {
         res.json(new ApiResponse(200, "product fetched", product))
     } else {
@@ -47,6 +50,10 @@ const updateProductById = asyncHandler(async (req, res) => {
     if (Object.keys(updates).length == 0) {
         throw new ApiError(400, "Do you even want to update anything?")
     }
+    const checks = await productModel.findOne({ _id: productId, seller: req.user._id })
+    if (!checks) {
+        throw new ApiError(403, "Not your product to update")
+    }
 
     const product = await productModel.findOneAndUpdate(
         { _id: productId },
@@ -62,6 +69,10 @@ const updateProductById = asyncHandler(async (req, res) => {
 
 const deleteProductById = asyncHandler(async (req, res) => {
     const productId = req.params.productId;
+    const checks = await productModel.findOne({ _id: productId, seller: req.user._id })
+    if (!checks) {
+        throw new ApiError(403, "Not your product to delete or already Deleted")
+    }
 
     try {
         const del = await productModel.deleteOne({ _id: productId })

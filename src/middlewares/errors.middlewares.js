@@ -1,3 +1,4 @@
+import { logger } from "../app.js";
 import { ApiError } from "../utils/ApiError.js";
 
 const notFound = (req, res, next) => {
@@ -7,7 +8,7 @@ const notFound = (req, res, next) => {
 const errorMiddleware = (err, req, res, next) => {
     // res.json(err)
     const statusCode = err.statusCode ? err.statusCode : 500;
-
+    logger.error(`${err.statusCode} ${err.message} ${req.originalUrl}`)
     res.status(statusCode)
     res.json({
         message: err.message,

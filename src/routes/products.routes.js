@@ -7,6 +7,7 @@ import {
     deleteProductById,
     updateProductById
 } from '../controllers/products.controllers.js';
+import { addRating } from "../controllers/rating.controllers.js"
 
 
 
@@ -19,15 +20,12 @@ router.post("/",
     addProduct
 );
 
-// router.rou("/:productId", validateUser("seller"), getProductById);
+// router.route("/")
 
 router.route("/:productId")
     .get(getProductById)
     .delete(validateUser("seller"), deleteProductById)
     .put(validateUser("seller"), updateProductById)
-
-
-
 
 
 
