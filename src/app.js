@@ -5,10 +5,13 @@ import { createLogger, transports } from "winston";
 import LokiTransport from "winston-loki";
 
 import { dbConnect } from "./config/dbConfig.js";
+import "./config/cloudinaryConfig.js";
 import userRoutes from "./routes/users.routes.js";
 import { notFound, errorMiddleware } from "./middlewares/errors.middlewares.js";
 import productRoutes from './routes/products.routes.js';
 import ratingRoutes from './routes/rating.routes.js';
+import presignedUrlRoutes from './routes/urls.routes.js';
+import commentRoutes from "./routes/comments.routes.js";
 
 const LokiOptions = {
     transports: [
@@ -35,6 +38,8 @@ app.get("/", (req, res) => res.json({ "message": "hello world!" }));
 app.use("/api/users", userRoutes)
 app.use("/api/products", productRoutes)
 app.use("/api/rating", ratingRoutes)
+app.use("/api/presignedurl", presignedUrlRoutes)
+app.use("/api/comments", commentRoutes)
 
 
 // errors
