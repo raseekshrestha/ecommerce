@@ -12,6 +12,7 @@ import productRoutes from './routes/products.routes.js';
 import ratingRoutes from './routes/rating.routes.js';
 import presignedUrlRoutes from './routes/urls.routes.js';
 import commentRoutes from "./routes/comments.routes.js";
+import cartRoutes from './routes/carts.routes.js';
 
 const LokiOptions = {
     transports: [
@@ -40,6 +41,7 @@ app.use("/api/products", productRoutes)
 app.use("/api/rating", ratingRoutes)
 app.use("/api/presignedurl", presignedUrlRoutes)
 app.use("/api/comments", commentRoutes)
+app.use("/api/carts", cartRoutes);
 
 
 // errors

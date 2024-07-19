@@ -2,7 +2,6 @@ import asyncHandler from "express-async-handler";
 import { commentModel } from "../models/comments.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import expressAsyncHandler from "express-async-handler";
 
 const addComment = asyncHandler(async (req, res) => {
     const productId = req.params.productId;
@@ -39,6 +38,9 @@ const deleteComment = asyncHandler(async (req, res) => {
     // if the comment has replies, set deleted=true,else delete completely 
     const replycount = await commentModel.countDocuments({ parent: commentId })
     const comment = await commentModel.findOne({ _id: commentId })
+    if (!comment) {
+        throw new ApiError(404, "comment does not exists")
+    }
     if (comment.commentor != req.user._id) {
         throw new ApiError(400, "Not Your Comment to delete");
     }
@@ -49,18 +51,32 @@ const deleteComment = asyncHandler(async (req, res) => {
         // comment contains reply
         del = await commentModel.findOneAndUpdate({ _id: commentId }, { $set: { deleted: true, content: "" } })
     }
-    res.json(new ApiResponse(204, "comment deleted", del))
+    res.json(new ApiResponse(204, "comment deleted"))
 
 })
 
+const getGroupedComment = async (productId, parent = null) => {
+    const results = [];
+    const topComments = await commentModel.find({ product: productId, parent }).populate({
+        path: "commentor",
+        select: "username"
+    })
+    for (let comment of topComments) {
+        const commentObj = {
+            ...comment._doc,
+            subComments: []
+        }
+        commentObj.subComments = await getGroupedComment(productId, comment._id)
+        results.push(commentObj)
+    }
+
+    return results;
+}
 
 const getCommentsOnProduct = asyncHandler(async (req, res) => {
     const productId = req.params.productId;
-
-    const comments = await commentModel.find({ product: productId, parent: null })
-    res.json(comments)
-
-
+    const comments = await getGroupedComment(productId, null)
+    res.json(new ApiResponse(200, "comments", comments))
 })
 
-export { addComment, editComment, deleteComment }
+export { addComment, editComment, deleteComment, getCommentsOnProduct }
