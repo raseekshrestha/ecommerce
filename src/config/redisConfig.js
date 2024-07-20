@@ -1,13 +1,13 @@
 import { Redis } from "ioredis";
 
-const redisClient = new Redis();
+// const redisClient = new Redis();
 
-// const redisClient = new Redis({
-//     port: 11350, // Redis port
-//     host: "redis-11350.c15.us-east-1-2.ec2.redns.redis-cloud.com", // Redis host
-//     username: "default", // needs Redis >= 6
-//     password: "GQv4qfcP0cen1k7bM0jErGynfXFqUfgD",
-//     db: 0, // Defaults to 0
-// });
+const redisClient = new Redis({
+    port: process.env.REDIS_PORT,
+    host: process.env.REDIS_HOST,
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    db: process.env.REDIS_DB,
+});
 
 export default redisClient
