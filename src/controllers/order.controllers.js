@@ -5,17 +5,16 @@ import { couponModel } from "../models/coupons.models.js";
 import { productModel } from "../models/products.model.js";
 import { mongoose } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
+import { generateHmacSignature } from '../utils/utils.functions.js';
+import { orderModel } from "../models/orders.model.js";
 
-const generateSignature = (message) => {
-    return crypto.createHmac('sha256', process.env.ESEWA_SECRET)
-        .update(message)
-        .digest('base64')
 
-}
 
 const createOrder = asyncHandler(async (req, res) => {
-    const { items, coupon } = req.body;
+    const { items, coupon, shippingAddress } = req.body;
+    if (!shippingAddress)
+        throw new ApiError(400, "shipping address required")
+
     if (items.length == 0)
         throw new ApiError(400, "ordering 0 products?")
 
@@ -44,17 +43,38 @@ const createOrder = asyncHandler(async (req, res) => {
 
     const ids = items.map(item => new mongoose.Types.ObjectId(item._id))
     const products = await productModel.find({ _id: { $in: ids } }).lean()
+    let orderItems = []
 
-    let totalPrice = products.reduce((total, product) => total + product.price, 0)
+    // calculate total price, while doing that create orderItems for orders
+    let totalPrice = products.reduce((total, product) => {
+        const quantity = items.find(item => item._id == product._id).quantity
+        orderItems.push({
+            productId: product._id,
+            quantity: quantity,
+            price: product.price * quantity
+        })
+        return total + product.price * quantity;
+    }, 0)
 
     // apply discount
-    totalPrice = totalPrice - (discount / 100) * totalPrice
+    totalPrice = totalPrice - (discount / 100) * totalPrice;
+
+    const order = await orderModel.create({
+        user: req.user._id,
+        items: orderItems,
+        totalAmount: totalPrice,
+        status: "PENDING",
+        paymentMethod: "Esewa",
+        paymentStatus: "PENDING",
+        shippingAddress,
+
+    })
 
     const esewaForm = {
         amount: totalPrice,
         tax_amount: 0,
         total_amount: totalPrice,
-        transaction_uuid: uuidv4(), // You need to set this dynamically or based on your requirement
+        transaction_uuid: uuidv4(),
         product_code: "EPAYTEST",
         product_service_charge: 0,
         product_delivery_charge: 0,
@@ -64,10 +84,13 @@ const createOrder = asyncHandler(async (req, res) => {
     };
 
     const message = `total_amount=${totalPrice},transaction_uuid=${esewaForm.transaction_uuid},product_code=${esewaForm.product_code}`
-    esewaForm.signature = generateSignature(message)
+    esewaForm.signature = generateHmacSignature(message)
 
-
-    res.json(new ApiResponse(200, "producstr", esewaForm))
+    if (order) {
+        res.json(new ApiResponse(200, "producstr", esewaForm))
+    } else {
+        throw new ApiError(500, "Order creation failed")
+    }
 
 
 

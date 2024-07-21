@@ -84,7 +84,7 @@ const orderSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "Transaction"
     },
-})
+}, { timestamps: true })
 
 
 

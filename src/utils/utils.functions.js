@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import crypto from 'crypto';
 
 const generatePresignedUrl = (imgType = "profile") => {
     const timestamp = Math.round((new Date).getTime() / 1000);
@@ -13,4 +14,11 @@ const generatePresignedUrl = (imgType = "profile") => {
     return { ...options, signature }
 }
 
-export { generatePresignedUrl }
+const generateHmacSignature = (message) => {
+    return crypto.createHmac('sha256', process.env.ESEWA_SECRET)
+        .update(message)
+        .digest('base64')
+
+}
+
+export { generatePresignedUrl, generateHmacSignature }
