@@ -7,3 +7,4 @@
 - presigned url for authenticated image upload from frontend, controllers for comments
 - cart implementation with redis
 - txn, coupons and order models with creating order controller
+- order creation with details and payment validation
