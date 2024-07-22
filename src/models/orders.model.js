@@ -36,11 +36,6 @@ const orderSchema = Schema({
         enum: ["Esewa", "Khalti", "Cash On Delivery"],
         required: true
     },
-    paymentStatus: {
-        type: String,
-        enum: ["PENDING", "COMPLETED", "FAILED"],
-        default: "PENDING"
-    },
     deliveryDate: {
         type: Date
     },

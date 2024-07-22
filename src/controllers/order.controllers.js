@@ -65,7 +65,6 @@ const createOrder = asyncHandler(async (req, res) => {
         totalAmount: totalPrice,
         status: "PENDING",
         paymentMethod: "Esewa",
-        paymentStatus: "PENDING",
         shippingAddress,
 
     })
@@ -91,9 +90,35 @@ const createOrder = asyncHandler(async (req, res) => {
     } else {
         throw new ApiError(500, "Order creation failed")
     }
-
-
-
 })
 
-export { createOrder }
+
+const getAllOrders = asyncHandler(async (req, res) => {
+    // p = page number , n = number of order per page
+    let { p, n } = req.query
+    //10 order per page by default and page number 1 if not specified
+    p = (p && p >= 0) ? p : 1;
+    n = n ? n : 10;
+    const offset = (p - 1) * n;
+    const orders = await orderModel.find({ user: req.user._id }).skip(offset).limit(n);
+
+    const totalOrders = await orderModel.countDocuments({ user: req.user._id })
+
+    const totalPages = Math.ceil(totalOrders / n)
+
+    res.json(new ApiResponse(200, `page ${p} of orders`, { orders, totalPages }))
+})
+
+const cancelOrder = asyncHandler(async (req, res) => {
+    const orderId = req.params.orderId;
+    const update = await orderModel.findOneAndUpdate(
+        { _id: orderId, user: req.user._id },
+        { $set: { status: "CANCELLED" } },
+        { new: true }
+    )
+    console.log(update)
+    res.json(new ApiResponse(200, "order cancelled", update))
+})
+
+
+export { createOrder, getAllOrders, cancelOrder }
