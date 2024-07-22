@@ -1,7 +1,7 @@
 import { Router } from "express";
 import validateUser from "../middlewares/userAuth.middleware.js";
 import { fieldValidator } from "../middlewares/fieldValidator.middlewares.js";
-import { cancelOrder, createOrder, getAllOrders } from "../controllers/order.controllers.js";
+import { cancelOrder, completeOrder, createOrder, getAllOrders } from "../controllers/order.controllers.js";
 
 const router = Router();
 
@@ -11,6 +11,8 @@ router.route("/")
     .get(validateUser(), getAllOrders)
 
 router.route("/:orderId")
+    .post(validateUser("staff"), completeOrder)
     .put(validateUser(), cancelOrder)
+
 
 export default router;

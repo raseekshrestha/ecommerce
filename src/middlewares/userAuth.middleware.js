@@ -1,4 +1,4 @@
-import jwt, { decode } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { ApiError } from '../utils/ApiError.js';
 
 const validateUser = (role = "any") => (req, res, next) => {

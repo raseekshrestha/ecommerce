@@ -111,14 +111,36 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
 const cancelOrder = asyncHandler(async (req, res) => {
     const orderId = req.params.orderId;
+    const order = await orderModel.findOne({ _id: orderId })
+    if (!order)
+        throw new ApiError(404, "that order does not exists");
+    if (order.user != req.user._id)
+        throw new ApiError(403, "Not your order")
+    if (order.status == "DELIVERED")
+        throw new ApiError(400, "product already delivered")
+
     const update = await orderModel.findOneAndUpdate(
         { _id: orderId, user: req.user._id },
         { $set: { status: "CANCELLED" } },
         { new: true }
     )
-    console.log(update)
+
     res.json(new ApiResponse(200, "order cancelled", update))
 })
 
+const completeOrder = asyncHandler(async (req, res) => {
+    const orderId = req.params.orderId;
 
-export { createOrder, getAllOrders, cancelOrder }
+    const order = await orderModel.findOne({ _id: orderId });
+    if (order.status == "CANCELLED")
+        throw new ApiError(400, "order had already been cancelled")
+
+    order.status = "DELIVERED";
+    await order.save();
+
+    res.json(new ApiResponse(200, "update: order completed", order))
+
+})
+
+
+export { createOrder, getAllOrders, cancelOrder, completeOrder }
