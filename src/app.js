@@ -15,6 +15,7 @@ import commentRoutes from "./routes/comments.routes.js";
 import cartRoutes from './routes/carts.routes.js';
 import orderRoutes from './routes/orders.routes.js';
 import paymentRoutes from './routes/paymentConfirmation.routes.js';
+import couponRoutes from './routes/coupons.routes.js';
 
 const LokiOptions = {
     transports: [
@@ -46,6 +47,7 @@ app.use("/api/comments", commentRoutes)
 app.use("/api/carts", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes)
+app.use("/api/coupon", couponRoutes)
 
 
 // errors

@@ -23,16 +23,25 @@ const createOrder = asyncHandler(async (req, res) => {
     if (coupon) {
         const dbCoupon = await couponModel.findOne({ code: coupon })
 
-        // if validity is present check if coupon is expired
+        if (!dbCoupon) {
+            throw new ApiError(404, "Coupon Does NOT exists")
+        }
+
+        // if useDateValidity is present check if coupon is expired
         // if not set then coupon will not expire
-        if (dbCoupon.validity && (Date.now() > dbCoupon.validity)) {
-            throw new ApiError(400, "Coupon Expired");
+        if (dbCoupon.useDateValidity) {
+            if (Date.now() / 1000 < dbCoupon.ValidityStart)
+                throw new ApiError(400, "Coupon Not usesable now! try later")
+
+            else if (Date.now() / 1000 > dbCoupon.ValidityEnd)
+                throw new ApiError(400, "Coupon Expired");
         }
 
         // if maxUse is present check if coupon is used maxUse times
         if (dbCoupon.maxUse && (dbCoupon.totalUse > dbCoupon.maxUse)) {
             throw new ApiError(400, "Coupon max use limit reached")
-        } else {
+        } else if (dbCoupon.maxUse) {
+
             dbCoupon.totalUse += 1;
             await dbCoupon.save()
         }

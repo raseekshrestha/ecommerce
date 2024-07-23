@@ -13,14 +13,25 @@ const couponSchema = Schema({
         min: [1, "Must be at least 1% discount"],
         max: [100, "Max 100% discount allowed"]
     },
-    validity: {
+    useDateValidity: {
+        type: Boolean,
+        default: false
+    },
+    validityStart: {
+        type: Date
+    },
+    validityEnd: {
         type: Date
     },
     maxUse: {
         type: Number
     },
     totalUse: {
-        type: Number
+        type: Number,
+        default: 0
+    },
+    deleted: {
+        type: Boolean,
     }
 },
     {

@@ -9,3 +9,4 @@
 - txn, coupons and order models with creating order controller
 - order creation with details and payment validationan
 - fetch the order information, cancel order and complete order controllers
+- coupons for discount

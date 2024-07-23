@@ -11,7 +11,7 @@ router.route("/")
     .get(validateUser(), getAllOrders)
 
 router.route("/:orderId")
-    .post(validateUser("staff"), completeOrder)
+    .post(validateUser("staff"), completeOrder) //only staff can mark an order as delivered
     .put(validateUser(), cancelOrder)
 
 
