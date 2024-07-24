@@ -40,6 +40,11 @@ const productSchema = Schema({
     seller: {
         type: Schema.Types.ObjectId,
         ref: "User"
+    },
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+        required: true
     }
 
 }, { timestamps: true })

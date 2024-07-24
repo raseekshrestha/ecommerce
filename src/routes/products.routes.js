@@ -16,7 +16,7 @@ const router = Router();
 // /api/products/
 router.post("/",
     validateUser("seller"),
-    fieldValidator(["name", "description", "price", "image_urls", "thumbnail_url"]),
+    fieldValidator(["name", "description", "price", "image_urls", "thumbnail_url", "category"]),
     addProduct
 );
 

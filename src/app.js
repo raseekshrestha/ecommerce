@@ -16,7 +16,7 @@ import cartRoutes from './routes/carts.routes.js';
 import orderRoutes from './routes/orders.routes.js';
 import paymentRoutes from './routes/paymentConfirmation.routes.js';
 import couponRoutes from './routes/coupons.routes.js';
-import categoryRoutes from './routes/category.models.js';
+import categoryRoutes from './routes/category.routes.js';
 
 const LokiOptions = {
     transports: [

@@ -2,14 +2,21 @@ import asyncHandler from "express-async-handler";
 import { productModel } from "../models/products.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { categoryModel } from "../models/category.model.js";
 
 
 const addProduct = asyncHandler(async (req, res) => {
-    const { name, description, image_urls, thumbnail_url, price, stock, discount } = req.body;
+    const { name, description, image_urls, thumbnail_url, price, stock, discount, category } = req.body;
+    const categoryExists = await categoryModel.countDocuments({ _id: category })
+    if (!categoryExists) {
+        throw new ApiError(404, "provided category does not exists")
+    }
+
     const product = await productModel.create({
         name, description,
         image_urls, thumbnail_url,
         price, stock, discount, seller: req.user._id
+        , category
     })
 
     if (product) {
