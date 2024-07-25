@@ -1,8 +1,11 @@
 import express from "express";
 import cors from 'cors';
 import 'dotenv/config'
-import { createLogger, transports } from "winston";
+import { createLogger } from "winston";
 import LokiTransport from "winston-loki";
+
+import promClient from 'prom-client';
+import responseTime from "response-time";
 
 import { dbConnect } from "./config/dbConfig.js";
 import "./config/cloudinaryConfig.js";
@@ -17,6 +20,21 @@ import orderRoutes from './routes/orders.routes.js';
 import paymentRoutes from './routes/paymentConfirmation.routes.js';
 import couponRoutes from './routes/coupons.routes.js';
 import categoryRoutes from './routes/category.routes.js';
+
+// prometheus setup
+const collectDefaultMetrics = promClient.collectDefaultMetrics;
+
+collectDefaultMetrics({
+    register: promClient.register
+})
+
+const reqResTime = new promClient.Histogram({
+    name: "http_express_req_res_time",
+    help: "indicate request and respose time",
+    labelNames: ['method', "route", "statusCode"],
+    buckets: [1, 50, 100, 200, 250, 500, 800, 1000, 1500, 2000]
+})
+
 
 const LokiOptions = {
     transports: [
@@ -37,8 +55,23 @@ dbConnect()
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(responseTime((req, res, time) => {
+    reqResTime.labels({
+        method: req.method,
+        route: req.url,
+        statusCode: res.statusCode
+    }).observe(time)
+}))
+
+
 
 app.get("/", (req, res) => res.json({ "message": "hello world!" }));
+
+app.get("/metrics", async (req, res) => {
+    res.setHeader("Content-Type", promClient.register.contentType)
+    const metrics = await promClient.register.metrics();
+    res.send(metrics)
+})
 
 app.use("/api/users", userRoutes)
 app.use("/api/products", productRoutes)

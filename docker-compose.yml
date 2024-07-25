@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  backend:
+    container_name: backend
+    build: .
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+      - mongo_db
+
+  mongo_db:
+    container_name: database
+    image: mongo:latest
+    restart: always
+    volumes:
+      - type: volume
+        source: mongo_db
+        target: /data/db
+      - type: bind
+        source: ./backups
+        target: /backups/
+
+  prometheus_server:
+    container_name: prometheus_server
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./src/config/prometheusConfig.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus_server
+
+volumes:
+  mongo_db: {}
