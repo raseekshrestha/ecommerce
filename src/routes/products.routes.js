@@ -5,9 +5,9 @@ import {
     addProduct,
     getProductById,
     deleteProductById,
-    updateProductById
+    updateProductById,
+    getTopXProductsByViews
 } from '../controllers/products.controllers.js';
-import { addRating } from "../controllers/rating.controllers.js"
 
 
 
@@ -20,7 +20,7 @@ router.post("/",
     addProduct
 );
 
-// router.route("/")
+router.get("/top20", getTopXProductsByViews(20));
 
 router.route("/:productId")
     .get(getProductById)

@@ -3,6 +3,7 @@ import { productModel } from "../models/products.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { categoryModel } from "../models/category.model.js";
+import redisClient from "../config/redisConfig.js";
 
 
 const addProduct = asyncHandler(async (req, res) => {
@@ -29,11 +30,17 @@ const addProduct = asyncHandler(async (req, res) => {
 
 const getProductById = asyncHandler(async (req, res) => {
     const productId = req.params.productId;
-    const product = await productModel.findOne({ _id: productId }).populate({
+    const product = await productModel.findOne({ _id: productId }).populate([{
         path: "seller",
         select: "username"
-    })
+    },
+    {
+        path: "category",
+        select: "name"
+    }
+    ])
     if (product) {
+        await redisClient.zincrby("products", 1, productId)
         res.json(new ApiResponse(200, "product fetched", product))
     } else {
         throw new ApiError(500, "failed to fetch")
@@ -93,5 +100,37 @@ const deleteProductById = asyncHandler(async (req, res) => {
 })
 
 
+const getTopXProductsByViews = (x) => asyncHandler(async (req, res) => {
+    try {
+        const topX = await redisClient.zrevrange("products", 0, x - 1, "WITHSCORES")
+        const productWithScore = [];
 
-export { addProduct, getProductById, updateProductById, deleteProductById }
+        for (let i = 0; i < topX.length; i += 2) {
+            productWithScore[topX[i]] = topX[i + 1]
+        }
+        const products = await productModel.find({ _id: { $in: Object.keys(productWithScore) } }).populate([{
+            path: "seller",
+            select: "username email"
+        },
+        {
+            path: "category",
+            select: "name"
+        }
+        ]).lean()
+
+        // add views into each products and sort them by views desc, popular first
+        const sortedProducts = products.map(product => {
+            const obj = { ...product, views: productWithScore[product._id] }
+            return obj
+        }).sort((p1, p2) => p2.views - p1.views)
+
+        res.json(new ApiResponse(200, "popular products", sortedProducts))
+    } catch (err) {
+
+        throw new ApiError(500, err.message)
+    }
+})
+
+
+
+export { addProduct, getProductById, updateProductById, deleteProductById, getTopXProductsByViews }
