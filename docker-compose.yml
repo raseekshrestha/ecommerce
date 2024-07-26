@@ -40,6 +40,16 @@ services:
       - 3000:3000
     depends_on:
       - prometheus_server
+      - loki
+    entrypoint: /bin/sh -c "while ! wget --spider -q http://loki:3100/ready; do echo 'Waiting for Loki to be ready...'; sleep 5; done; /run.sh"
+
+  loki:
+    container_name: loki
+    image: grafana/loki
+    ports:
+      - 3100:3100
+    depends_on:
+      - backend
 
 volumes:
   mongo_db: {}

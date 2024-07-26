@@ -42,7 +42,7 @@ const LokiOptions = {
             labels: {
                 appName: "express monitor"
             },
-            host: "http://127.0.0.1:3100"
+            host: "http://loki:3100"
         })
     ]
 };
@@ -65,7 +65,9 @@ app.use(responseTime((req, res, time) => {
 
 
 
-app.get("/", (req, res) => res.json({ "message": "hello world!" }));
+app.get("/", (req, res) => {
+    res.json({ "message": "hello world!" })
+});
 
 app.get("/metrics", async (req, res) => {
     res.setHeader("Content-Type", promClient.register.contentType)
