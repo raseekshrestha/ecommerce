@@ -10,4 +10,5 @@
 - order creation with details and payment validationan
 - fetch the order information, cancel order and complete order controllers
 - coupons for discount
-- categories added, support for multilevel subcategories 
+- categories added, support for multilevel subcategories
+- containerize loki and set stop perfoming product with redis
