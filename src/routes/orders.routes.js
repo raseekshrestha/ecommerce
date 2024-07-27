@@ -7,7 +7,7 @@ const router = Router();
 
 
 router.route("/")
-    .post(validateUser(), fieldValidator(['items']), createOrder)
+    .post(validateUser(), fieldValidator(['items', 'paymentMethod']), createOrder)
     .get(validateUser(), getAllOrders)
 
 router.route("/:orderId")

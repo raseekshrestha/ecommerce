@@ -8,7 +8,6 @@ const TransactionSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['COMPLETE', 'PENDING', 'FAILED'],
         required: true
     },
     totalAmount: {
@@ -21,11 +20,12 @@ const TransactionSchema = new Schema({
     },
     productCode: {
         type: String,
-        required: true
     },
     signature: {
         type: String,
-        required: true
+    },
+    fee: {
+        type: Number
     }
 });
 

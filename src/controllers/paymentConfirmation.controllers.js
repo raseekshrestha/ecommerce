@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { generateHmacSignature } from "../utils/utils.functions.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { txnModel } from "../models/transactions.model.js";
+import axios from "axios";
 
 const esewaSuccess = asyncHandler(async (req, res) => {
     const data = req.query.data;
@@ -28,7 +29,7 @@ const esewaSuccess = asyncHandler(async (req, res) => {
             signature: d64decoded.signature
         })
 
-        res.redirect(process.env.FRONTEND_URL);
+        res.redirect(process.env.FRONTEND_URL + `/path/to/success/?success=1?productCode=${d64decoded.product_code}`);
 
     } catch (error) {
         throw new ApiError(400, error.message)
@@ -37,6 +38,43 @@ const esewaSuccess = asyncHandler(async (req, res) => {
 })
 
 const esewaFailure = asyncHandler(async (req, res) => {
+    res.redirect(process.env.FRONTEND_URL + "/path/to/failure/?success=0")
+})
+
+const khaltiSuccess = asyncHandler(async (req, res) => {
+    const { pidx, txnId, amount, total_amount, mobile, status, tidx, purchase_order_id, purchase_order_name, transaction_id } = req.query
+    console.log(req.query)
+    const confirmationUrl = process.env.KHALTI_CONFIRMATION_URL;
+    const config = {
+        headers: {
+            "Authorization": `key ${process.env.KHALTI_LIVE_SECRET}`
+        }
+    }
+    try {
+        const resp = await axios.post(confirmationUrl, { pidx }, config)
+        const data = resp.data
+        const txn = await txnModel.create({
+            transactionCode: data.pidx,
+            status: data.status,
+            totalAmount: data.total_amount / 100,
+            transactionUuid: data.transaction_id,
+            fee: data.fee / 100
+        })
+        if (resp.data.status == "Completed") {
+            return res.redirect(process.env.FRONTEND_URL + "?payment=success")
+        } else {
+            return res.redirect(process.env.FRONTEND_URL + "?payment=" + resp.data.status)
+        }
+    } catch (err) {
+        throw new ApiError(400, err.message || "payment failed")
+    }
 
 })
-export { esewaSuccess, esewaFailure }
+
+const khaltiFailure = asyncHandler(async (req, res) => {
+
+    return res.redirect(process.env.FRONTEND_URL + "/path/to/failure/?success=0?payment=" + req.query.status)
+
+})
+
+export { esewaSuccess, esewaFailure, khaltiSuccess, khaltiFailure }

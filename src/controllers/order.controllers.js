@@ -7,11 +7,12 @@ import { mongoose } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { generateHmacSignature } from '../utils/utils.functions.js';
 import { orderModel } from "../models/orders.model.js";
+import axios from 'axios';
 
 
 
 const createOrder = asyncHandler(async (req, res) => {
-    const { items, coupon, shippingAddress } = req.body;
+    const { items, coupon, shippingAddress, paymentMethod } = req.body;
     if (!shippingAddress)
         throw new ApiError(400, "shipping address required")
 
@@ -73,32 +74,58 @@ const createOrder = asyncHandler(async (req, res) => {
         items: orderItems,
         totalAmount: totalPrice,
         status: "PENDING",
-        paymentMethod: "Esewa",
+        paymentMethod,
         shippingAddress,
 
     })
 
-    const esewaForm = {
-        amount: totalPrice,
-        tax_amount: 0,
-        total_amount: totalPrice,
-        transaction_uuid: uuidv4(),
-        product_code: "EPAYTEST",
-        product_service_charge: 0,
-        product_delivery_charge: 0,
-        success_url: process.env.BACKEND_URL + "/api/payment/esewasuccess",
-        failure_url: process.env.BACKEND_URL + "/api/payment/esewafailure",
-        signed_field_names: "total_amount,transaction_uuid,product_code",
-    };
+    const txUuid = uuidv4();
 
-    const message = `total_amount=${totalPrice},transaction_uuid=${esewaForm.transaction_uuid},product_code=${esewaForm.product_code}`
-    esewaForm.signature = generateHmacSignature(message)
+    if (paymentMethod == "Esewa") {
+        const esewaForm = {
+            amount: totalPrice,
+            tax_amount: 0,
+            total_amount: totalPrice,
+            transaction_uuid: txUuid,
+            product_code: "EPAYTEST",
+            product_service_charge: 0,
+            product_delivery_charge: 0,
+            success_url: process.env.BACKEND_URL + "/api/payment/esewasuccess",
+            failure_url: process.env.BACKEND_URL + "/api/payment/esewafailure",
+            signed_field_names: "total_amount,transaction_uuid,product_code",
+        };
 
-    if (order) {
-        res.json(new ApiResponse(200, "producstr", esewaForm))
-    } else {
-        throw new ApiError(500, "Order creation failed")
+        const message = `total_amount=${totalPrice},transaction_uuid=${esewaForm.transaction_uuid},product_code=${esewaForm.product_code}`
+        esewaForm.signature = generateHmacSignature(message)
+        if (order)
+            res.json(new ApiResponse(200, "esewa payment form", esewaForm))
     }
+    else if (paymentMethod == "Khalti") {
+        const khaltiForm = {
+            "return_url": `${process.env.BACKEND_URL}/api/payment/khaltisuccess`,
+            "website_url": process.env.BACKEND_URL,
+            "amount": totalPrice * 100,
+            "purchase_order_id": txUuid,
+            "purchase_order_name": "test",
+            "merchant_username": "merchant_name",
+            "merchant_extra": "merchant_extra"
+        }
+        const config = {
+            headers: {
+                "Authorization": `key ${process.env.KHALTI_LIVE_SECRET}`,
+                "Content-Type": "application/json"
+            }
+        }
+        try {
+            const resp = await axios.post("https://a.khalti.com/api/v2/epayment/initiate/", khaltiForm, config)
+            res.json(new ApiResponse(201, "khali order created", resp.data))
+        } catch (err) {
+            console.log(err.response.data)
+            throw new ApiError(400, err.response.data.detail)
+        }
+
+    }
+
 })
 
 
