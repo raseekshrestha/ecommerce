@@ -69,6 +69,8 @@ const createOrder = asyncHandler(async (req, res) => {
     // apply discount
     totalPrice = totalPrice - (discount / 100) * totalPrice;
 
+    const txUuid = uuidv4();
+
     const order = await orderModel.create({
         user: req.user._id,
         items: orderItems,
@@ -76,10 +78,10 @@ const createOrder = asyncHandler(async (req, res) => {
         status: "PENDING",
         paymentMethod,
         shippingAddress,
+        txUuid
 
     })
 
-    const txUuid = uuidv4();
 
     if (paymentMethod == "Esewa") {
         const esewaForm = {
@@ -123,6 +125,8 @@ const createOrder = asyncHandler(async (req, res) => {
             console.log(err.response.data)
             throw new ApiError(400, err.response.data.detail)
         }
+
+    } else if (paymentMethod == "Cash On Delivery") {
 
     }
 

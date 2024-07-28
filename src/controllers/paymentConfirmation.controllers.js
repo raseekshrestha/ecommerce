@@ -4,6 +4,15 @@ import { generateHmacSignature } from "../utils/utils.functions.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { txnModel } from "../models/transactions.model.js";
 import axios from "axios";
+import { orderModel } from "../models/orders.model.js";
+
+
+const updateOrder = async (txUuid, txId) => {
+    const set = await orderModel.updateOne({ txUuid }, {
+        $set: { transaction: txId }
+    })
+    console.log(set)
+}
 
 const esewaSuccess = asyncHandler(async (req, res) => {
     const data = req.query.data;
@@ -28,6 +37,8 @@ const esewaSuccess = asyncHandler(async (req, res) => {
             productCode: d64decoded.product_code,
             signature: d64decoded.signature
         })
+
+        updateOrder(d64decoded.transaction_uuid, txn._id)
 
         res.redirect(process.env.FRONTEND_URL + `/path/to/success/?success=1?productCode=${d64decoded.product_code}`);
 
@@ -57,9 +68,11 @@ const khaltiSuccess = asyncHandler(async (req, res) => {
             transactionCode: data.pidx,
             status: data.status,
             totalAmount: data.total_amount / 100,
-            transactionUuid: data.transaction_id,
+            transactionUuid: purchase_order_id,
             fee: data.fee / 100
         })
+        updateOrder(purchase_order_id, txn._id)
+
         if (resp.data.status == "Completed") {
             return res.redirect(process.env.FRONTEND_URL + "?payment=success")
         } else {

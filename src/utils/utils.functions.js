@@ -11,7 +11,12 @@ const generatePresignedUrl = (imgType = "profile") => {
 
     const signature = cloudinary.utils.api_sign_request(options, process.env.CLOUDINARY_API_SECRET);
 
-    return { ...options, signature }
+    return {
+        ...options,
+        signature,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        postUrl: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUDNAME}/auto/upload`
+    }
 }
 
 const generateHmacSignature = (message) => {

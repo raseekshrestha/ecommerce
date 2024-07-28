@@ -12,3 +12,4 @@
 - coupons for discount
 - categories added, support for multilevel subcategories
 - containerize loki and set stop perfoming product with redis
+- khalti payment gateway integrated

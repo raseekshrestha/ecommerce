@@ -5,6 +5,11 @@ const orderSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
+    txUuid: {
+        type: String,
+        required: true,
+        index: true
+    },
     items: [
         {
             productId: {
