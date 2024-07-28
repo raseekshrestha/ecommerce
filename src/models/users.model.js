@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { profile } from "winston";
 
 const userSchema = Schema({
     username: {
@@ -21,6 +22,9 @@ const userSchema = Schema({
     password: {
         type: String,
         required: true
+    },
+    profilePic: {
+        type: String
     },
     number: {
         type: String,

@@ -40,14 +40,15 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const editDetails = asyncHandler(async (req, res) => {
     // only username number and address are allowed to change
-    const { username, number, address } = req.body;
-    if (!(username || number || address)) {
-        throw new ApiError(400, "any of username, number,address if required. All missing!");
+    const { username, number, address, profilePic } = req.body;
+    if (!(username || number || address || profile)) {
+        throw new ApiError(400, "any of username, number,address or profile is required. All missing!");
     }
     const user = await userModel.findOne({ _id: req.user._id }).select("-password")
     if (username) user.username = username;
     if (number) user.number = number;
     if (address) user.address = address;
+    if (profilePic) user.profilePic = profilePic;
     try {
         const edited = await user.save()
         res.json(new ApiResponse(200, "Edited Successfully", edited))
