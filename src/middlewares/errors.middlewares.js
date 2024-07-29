@@ -6,8 +6,7 @@ const notFound = (req, res, next) => {
 }
 
 const errorMiddleware = (err, req, res, next) => {
-    // res.json(err)
-    const statusCode = err.statusCode ? err.statusCode : 500;
+    const statusCode = err.statusCode >= 400 ? err.statusCode : 500;
     logger.error(`${err.statusCode} ${err.message} ${req.originalUrl}`)
     res.status(statusCode)
     res.json({

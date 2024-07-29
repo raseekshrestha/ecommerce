@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { userModel } from "../models/users.model.js";
 import validator from "validator";
-import { ApiError } from '../utils/ApiError.js'
+import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { logger } from "../app.js";
 

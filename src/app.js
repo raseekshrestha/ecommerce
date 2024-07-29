@@ -20,6 +20,7 @@ import orderRoutes from './routes/orders.routes.js';
 import paymentRoutes from './routes/paymentConfirmation.routes.js';
 import couponRoutes from './routes/coupons.routes.js';
 import categoryRoutes from './routes/category.routes.js';
+import searchRoutes from './routes/search.routes.js';
 
 // prometheus setup
 const collectDefaultMetrics = promClient.collectDefaultMetrics;
@@ -85,6 +86,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes)
 app.use("/api/coupon", couponRoutes)
 app.use("/api/categories", categoryRoutes);
+app.use("/api/search", searchRoutes)
 
 
 // errors
