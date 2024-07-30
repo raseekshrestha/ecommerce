@@ -1,6 +1,6 @@
 import { Redis } from "ioredis";
 
-
+// for docker compose docker compose
 // const redisClient = new Redis({
 //     port: 6379,
 //     host: "redis",
