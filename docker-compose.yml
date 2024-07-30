@@ -10,6 +10,7 @@ services:
       - .env
     depends_on:
       - mongo_db
+      - redis
 
   mongo_db:
     container_name: database
@@ -50,6 +51,13 @@ services:
       - 3100:3100
     depends_on:
       - backend
+
+  redis:
+    container_name: redis
+    image: redis/redis-stack
+    ports:
+      - 6379:6379
+      - 8001:8001
 
 volumes:
   mongo_db: {}
