@@ -55,6 +55,8 @@ const createOrder = asyncHandler(async (req, res) => {
     const products = await productModel.find({ _id: { $in: ids } }).lean()
     let orderItems = []
 
+    const bulkOperation = [];
+
     // calculate total price, while doing that create orderItems for orders
     let totalPrice = products.reduce((total, product) => {
         const quantity = items.find(item => item._id == product._id).quantity
@@ -63,8 +65,20 @@ const createOrder = asyncHandler(async (req, res) => {
             quantity: quantity,
             price: product.price * quantity
         })
+
+        // creating a bulk operation to update the stock 
+        const operation = {
+            updateOne: {
+                filter: { _id: product._id },
+                update: { $inc: { stock: -quantity } }
+            }
+        }
+        bulkOperation.push(operation);
+
         return total + product.price * quantity;
     }, 0)
+
+    const updateStocks = await productModel.bulkWrite(bulkOperation)
 
     // apply discount
     totalPrice = totalPrice - (discount / 100) * totalPrice;
@@ -140,7 +154,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     p = (p && p >= 0) ? p : 1;
     n = n ? n : 10;
     const offset = (p - 1) * n;
-    const orders = await orderModel.find({ user: req.user._id }).skip(offset).limit(n);
+    const orders = await orderModel.find({ user: req.user._id }).skip(offset).limit(n).populate("transaction");
 
     const totalOrders = await orderModel.countDocuments({ user: req.user._id })
 
@@ -156,6 +170,8 @@ const cancelOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "that order does not exists");
     if (order.user != req.user._id)
         throw new ApiError(403, "Not your order")
+    if (order.status == "CANCELLED")
+        throw new ApiError(400, "Order Already Cancelled")
     if (order.status == "DELIVERED")
         throw new ApiError(400, "product already delivered")
 
@@ -164,6 +180,17 @@ const cancelOrder = asyncHandler(async (req, res) => {
         { $set: { status: "CANCELLED" } },
         { new: true }
     )
+
+    const bulkOperations = update.items.map(item => {
+        return {
+            updateOne: {
+                filter: { _id: item.productId },
+                update: { $inc: { stock: item.quantity } }
+            }
+        }
+    })
+
+    const bulkUpdate = await productModel.bulkWrite(bulkOperations)
 
     res.json(new ApiResponse(200, "order cancelled", update))
 })

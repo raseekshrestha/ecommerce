@@ -16,7 +16,10 @@ const addProduct = asyncHandler(async (req, res) => {
     const product = await productModel.create({
         name, description,
         image_urls, thumbnail_url,
-        price, stock, discount, seller: req.user._id
+        price,
+        stock: stock || Infinity,
+        discount,
+        seller: req.user._id
         , category
     })
 
